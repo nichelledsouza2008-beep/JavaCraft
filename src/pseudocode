@@ -1,0 +1,182 @@
+//1
+START method generateEmptyWorld()
+LET world = int array [rows-NEW_WORLD_WIDTH][col-NEW_WORLD_HEIGHT]
+LET redBlock = 1;
+LET whiteBlock = 4;
+LET blueBlock = 3;
+LET stripeHeight = NEW_WORLD_HEIGHT / 3
+
+START LOOP
+FOR y=0, y < stripeHeight, (increment by 1) y= y+1
+ FOR x=0, x < , NEW_WORLD_WIDTH(increment by 1) x= x+1
+  world[x][y] = redBlock
+END LOOP
+
+START LOOP
+FOR y=stripeHeight, y < stripeHeight * 2, (increment by 1) y= y+1
+ FOR x=0, x < , NEW_WORLD_WIDTH(increment by 1) x= x+1
+  world[x][y] = whiteBlock
+END LOOP
+
+START LOOP
+FOR y=stripeHeight * 2, y < NEW_WORLD_HEIGHT, (increment by 1) y= y+1
+ FOR x=0, x < , NEW_WORLD_WIDTH(increment by 1) x= x+1
+  world[x][y] = blueBlock
+END LOOP
+END METHOD
+
+//2
+START method lookAround()
+PRINT "You look around and see:"
+START LOOP
+FOR y = Math.max(0, playerY - 1), y <= Math.min(playerY + 1, worldHeight - 1); y=y+1
+ FOR x = Math.max(0, playerX - 1); x <= Math.min(playerX + 1, worldWidth - 1); x=x+1;
+ IF x == playerX  y == playerY
+  PRINT ANSI_GREEN + "P " + ANSI_RESET
+ ELSE 
+  PRINT method(getBlockSymbol(world[x][y]))
+ END IF
+ PRINT NEXTLINE
+PRINT NEXTLINE
+call (method waitforEnter())
+END METHOD
+
+//3
+START method movePlayer(String direction)
+SWITCH DIRECTION
+    CASE "W":
+    CASE "UP":
+      IF playerY > 0
+        playerY - 1 (postfix)
+      BREAK
+    CASE "S":
+    CASE "DOWN":
+        IF playerY < worldHeight - 1 
+          playerY + 1 (postfix)
+        BREAK
+    CASE "A":
+    CASE "LEFT":
+        IF playerX > 0
+          playerX - 1
+        BREAK
+    CASE "D":
+    CASE "RIGHT":
+        IF playerX < worldWidth - 1
+          playerX + 1
+        BREAK
+    DEFAULT:
+     BREAK
+END SWITCH
+END METHOD
+
+//4
+START method craftItem(int recipe) 
+    SWITCH recipe
+      CASE 1:
+        call method (craftWoodenPlanks())
+        BREAK 
+      CASE 2:
+       call method (craftStick())
+       BREAK
+      CASE 3
+        call method (craftIronIngot())
+        BREAK
+      DEFAULT:
+        PRINT "Invalid recipe number."
+    END SWITCH
+    call method(waitForEnter())
+END METHOD
+
+//main game loop
+START method startGame() 
+    create scanner class
+    LET unlockMode = false;
+    LET craftingCommandEntered = false;
+    LET miningCommandEntered = false;
+    LET movementCommandEntered = false;
+    LET openCommandEntered = false;
+
+  START LOOP
+    while true 
+      method clearScreen();
+      method displayLegend();
+      method displayWorld();
+      method displayInventory();
+      PRINT (ANSI_CYAN
+          + "Enter your action: 'WASD': Move, 'M': Mine, 'P': Place, 'C': Craft, 'I': Interact, 'Save': Save, 'Load': Load, 'Exit': Quit, 'Unlock': Unlock Secret Door"
+          + ANSI_RESET);
+      LET input = scanner.next().toLowerCase();
+      IF (input.equalsIgnoreCase("w") || input.equalsIgnoreCase("up") ||
+          input.equalsIgnoreCase("s") || input.equalsIgnoreCase("down") ||
+          input.equalsIgnoreCase("a") || input.equalsIgnoreCase("left") ||
+          input.equalsIgnoreCase("d") || input.equalsIgnoreCase("right")) 
+        IF unlockMode
+          LET movementCommandEntered = true;
+        call movePlayer(input);
+      ELSE IF input.equalsIgnoreCase("m")
+        IF unlockMode 
+          miningCommandEntered = true;
+        call mineBlock();
+      ELSE IF input.equalsIgnoreCase("p") 
+        call displayInventory();
+        PRINT("Enter the block type to place: ");
+        LET blockType = scanner.nextInt();
+        call placeBlock(blockType);
+      ELSE IF input.equalsIgnoreCase("c")
+        call displayCraftingRecipes();
+        PRINT("Enter the recipe number to craft: ");
+        LET recipe = scanner.nextInt();
+        call craftItem(recipe);
+       ELSE IF input.equalsIgnoreCase("i")
+        call interactWithWorld();
+       ELSE IF input.equalsIgnoreCase("save")
+        PRINT("Enter the file name to save the game state: ");
+        LET fileName = scanner.next();
+        call saveGame(fileName);
+       ELSE IF input.equalsIgnoreCase("load")
+        PRINT("Enter the file name to load the game state: ");
+        LET fileName = scanner.next();
+        call loadGame(fileName);
+       ELSE IF input.equalsIgnoreCase("exit") 
+        PRINT("Exiting the game. Goodbye!");
+        break;
+       ELSE IF input.equalsIgnoreCase("look")
+        call lookAround();
+       ELSE IF input.equalsIgnoreCase("unlock")
+        LET unlockMode = true;
+       ELSE input.equalsIgnoreCase("open")
+        IF (unlockMode && craftingCommandEntered && miningCommandEntered && movementCommandEntered) 
+          LET secretDoorUnlocked = true;
+          call resetWorld();
+          PRINT("Secret door unlocked!");
+          call waitForEnter();
+         ELSE
+          PRINT("Invalid passkey. Try again!");
+          call waitForEnter();
+          LET unlockMode = false;
+          LET craftingCommandEntered = false;
+          LET miningCommandEntered = false;
+          LET movementCommandEntered = false;
+          LET openCommandEntered = false;
+        
+      ELSE 
+        PRINT(ANSI_YELLOW + "Invalid input. Please try again." + ANSI_RESET);
+      
+      IF unlockMode 
+        IF input.equalsIgnoreCase("c")
+          LET craftingCommandEntered = true;
+         ELSE IF input.equalsIgnoreCase("m")
+          LET miningCommandEntered = true;
+         ELSE IF input.equalsIgnoreCase("open")
+          LET openCommandEntered = true;
+        
+      IF secretDoorUnlocked
+        call clearScreen();
+        PRINT ("You have entered the secret area!");
+        LET inSecretArea = true;
+        call resetWorld();
+        LET secretDoorUnlocked = false;
+        call fillInventory();
+        call waitForEnter();
+      
+
