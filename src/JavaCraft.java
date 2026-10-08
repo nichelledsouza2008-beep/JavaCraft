@@ -333,9 +333,15 @@ public class JavaCraft {
                         // on to step 2.
                         break;
                     }
-                    // Decrypt the server response, then extract and validate the chat message.
-                    System.out.println("before decryption: " + fromServer);
+                    // Server status notices are not chat messages and do not
+                    // follow the format checked by the DFA.
                     var decryptedMessage = Decrypt(fromServer);
+                    if (!decryptedMessage.contains(">>>")) {
+                        System.out.println(decryptedMessage);
+                        continue;
+                    }
+
+                    // Chat messages follow the server's "header >>> message" format.
                     var chatMessage = extractMessage(decryptedMessage);
                     if (isValidMessage(chatMessage)) {
                         System.out.println(chatMessage);

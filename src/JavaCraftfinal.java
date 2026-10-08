@@ -57,26 +57,6 @@ public class JavaCraftfinal {
   private static boolean inSecretArea = false;
   private static final int INVENTORY_SIZE = 100;
 
-  //dfa
-  private static final int kNumStates = 7; // 4 states based on the table
-  private static final int kNumSymbols = 5; // 2 symbols (0 and 1) based on the table
-  private static final int[][] kTransitionTable = {
-      { 0, 1, 6, 6, 6, 6 },
-      { 1, 6, 2, 6, 6, 6 },
-      { 2, 6, 2, 3, 6, 6 },
-      { 3, 6, 6, 6, 4, 6 },
-      { 4, 6, 6, 6, 6, 5 },
-      { 5, 5, 5, 5, 5, 5 },
-      { 6, 6, 6, 6, 6, 6 }
-  };
-  private static final boolean[] kAcceptTable = {
-      false,
-      false,
-      false,
-      false,
-      true,
-      false
-  };//end dfa
 
   public static void main(String[] args) {
     initGame(25, 15);
@@ -375,14 +355,20 @@ public class JavaCraftfinal {
             // on to step 2.
             break;
           }
-          // Decrypt the server response, then extract and validate the chat message.
-          System.out.println("before decryption: " + fromServer);
+          // Server status notices (for example, a user connecting) are not chat
+          // messages and do not follow the chat-message format checked by the DFA.
           var decryptedMessage = Decrypt(fromServer);
+          if (!decryptedMessage.contains(">>>")) {
+            System.out.println(decryptedMessage);
+            continue;
+          }
+
+          // Chat messages follow the server's "header >>> message" format.
           var chatMessage = extractMessage(decryptedMessage);
           if (isValidMessage(chatMessage)) {
             System.out.println(chatMessage);
           } else {
-            System.out.println("Received a message rejected by the DFA: " + chatMessage);
+            System.out.println("Received a message rejected by the DFA: " + chatMessage);//check
           }
         }
 
@@ -393,7 +379,7 @@ public class JavaCraftfinal {
             output.println(Encrypt(messageToSend));
             output.flush();
           } else {
-            System.out.println("Rejected by the DFA: the message must follow the format @Name: message");
+            System.out.println("Rejected: the format of the message must be @Name: message");
           }
         }
 
