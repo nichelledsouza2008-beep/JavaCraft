@@ -366,7 +366,7 @@ public class JavaCraftfinal {
           // Chat messages follow the server's "header >>> message" format.
           var chatMessage = extractMessage(decryptedMessage);
           if (isValidMessage(chatMessage)) {
-            System.out.println(chatMessage);
+            System.out.println("[decrypted]   "+chatMessage);
           } else {
             System.out.println("Received a message rejected by the DFA: " + chatMessage);//check
           }
@@ -376,7 +376,7 @@ public class JavaCraftfinal {
         if (!messageToSend.equals("")) {
           if (isValidMessage(messageToSend)){
             // Validate before encrypting and sending the message.
-            output.println(Encrypt(messageToSend));
+            output.println("[encrypted]   "+Encrypt(messageToSend));
             output.flush();
           } else {
             System.out.println("Rejected: the format of the message must be @Name: message");
