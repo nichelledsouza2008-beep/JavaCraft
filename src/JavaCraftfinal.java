@@ -296,31 +296,7 @@ public class JavaCraftfinal {
     public static boolean isValidMessage(String message) {
         return DfaChat.simulateDFA(message);
     }
-    /*
-     * if (!message.startsWith("@"))
-     * return false;
-     * int at = message.indexOf('@');
-     * if (message.charAt(at + 1) == '@')
-     * return false;
-     * 
-     * int colon = message.indexOf(':');
-     * if (colon == -1)
-     * return false; // no colon at all
-     * if (message.charAt(colon + 1) == ':')
-     * return false;
-     * if (colon == 1)
-     * return false; // "@:" means the name is empty
-     * 
-     * String name = message.substring(1, colon);
-     * if (name.contains(" "))
-     * return false;
-     * 
-     * if (message.charAt(colon + 1) == ' ') {
-     * String text = message.substring(colon + 1);
-     * return !text.isEmpty();// there must be some text
-     * } else
-     * return false;
-     */
+    
 
     public static String extractMessage(String serverMessage) {
         int separator = serverMessage.indexOf(">>>");
@@ -355,28 +331,25 @@ public class JavaCraftfinal {
                         // on to step 2.
                         break;
                     }
-                    // Server status notices (for example, a user connecting) are not chat
-                    // messages and do not follow the chat-message format checked by the DFA.
-                    // The server sends these in plain text, so print them without decrypting.
+                   
                     if (!fromServer.contains(">>>")) {
                         System.out.println(fromServer);
                         continue;
                     }
 
-                    // Chat messages follow the server's "header >>> message" format.
-                    // Only the message part was encrypted by the sender, so only decrypt that.
+                    
                     var chatMessage = Decrypt(extractMessage(fromServer));
                     if (isValidMessage(chatMessage)) {
                         System.out.println("[decrypted]   " + chatMessage);
                     } else {
-                        System.out.println("Received a message rejected by the DFA: " + chatMessage);// check
+                        System.out.println("Received a message rejected by the DFA: " + chatMessage);
                     }
                 }
 
                 var messageToSend = inputFromUser.nextLine();
                 if (!messageToSend.equals("")) {
                     if (isValidMessage(messageToSend)) {
-                        // Validate before encrypting and sending the message.
+                       
                         var encrypted = Encrypt(messageToSend);
                         System.out.println("[encrypted]   " + encrypted);
                         output.println(encrypted);
